@@ -41,15 +41,21 @@ public class LectureFichierXML {
     public static void LectureConfiguration() throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
-        Document doc = db.parse("src/configuration.xml");
+        // récupération du fichier de configuration
+        Document doc = db.parse("/etc/myweb/myweb.conf");
         doc.getDocumentElement().normalize();
-
+        
+        // récupération du port, si le port n'est pas renseigné on prend le port 80
         String port = doc.getElementsByTagName("port").item(0).getTextContent();
         PORT = port != "" ? Integer.parseInt(port) : 80;
+        // récupération de la racine, si la racine n'est pas renseigné on prend src comme racine
         String root = doc.getElementsByTagName("root").item(0).getTextContent();
         ROOT = root != "" ? root : "src";
+        // récupération de la condition de l'index
         INDEX = Boolean.parseBoolean(doc.getElementsByTagName("index").item(0).getTextContent());
+        // récupération des adresses IP acceptées
         ACCEPT = doc.getElementsByTagName("accept").item(0).getTextContent();
+        // récupération des adresses IP rejetées
         REJECT = doc.getElementsByTagName("reject").item(0).getTextContent();
     }
 }
