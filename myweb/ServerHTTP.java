@@ -96,4 +96,37 @@ public class ServerHTTP {
         // récupération des adresses IP rejetées
         REJECT = doc.getElementsByTagName("reject").item(0).getTextContent();
     }
+    
+    /**
+     * Methode qui permet de verifier si l'adresse IP est valide
+     * @param ip l'adresse IP du client
+     * @return true si l'adresse IP est valide, false sinon
+     */
+    public static boolean ipValide(String ip) {
+
+        boolean valide = false;
+        String ip2 = "192:168:0:0";
+        //Transforme l ip du client en un tableau de string
+        String[] s = ip.split(":");
+
+
+        //String qui recuperer le nombre d'occurence
+        int fin = Integer.parseInt(REJECT.split("/")[1]);
+        //transforme l ip du client en un tableau de string
+        String[] rejet = REJECT.split("\\.");
+        String[] accept = ACCEPT.split("\\.");
+        //Parcours des tableaux
+        for (int i = 0; i < fin / 8; i++) {
+            //Si l ip du client est egale a l ip autorise
+            if (s[i].equals(rejet)) {
+                valide = false;
+                break;
+            }
+            if (!s[i].equals(accept)) {
+                valide = false;
+                break;
+            }
+        }
+        return valide;
+    }
 }
