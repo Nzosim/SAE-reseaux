@@ -1,0 +1,50 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]
+then
+   echo "Vous devez entrer un argument : stop, start ou restart"
+   exit
+fi
+
+pid=$(head -1 Bureau/Reseaux_Simonin_Enzo_S2A/test.pid)
+
+case $1 in
+"stop")
+   top -b -n 1 > tmp.txt
+   nbLignes=$(grep -c $pid tmp.txt)
+   if [ $nbLignes -eq 0 ]
+   then
+   	echo "Vous devez d'abord allumer le serveur avant de l'éteindre"
+   else
+   	kill -9 $pid
+   	echo "Le serveur à été arrêté"
+   fi;;
+
+"start")
+   top -b -n 1 > tmp.txt
+   nbLignes=$(grep -c $pid tmp.txt)
+   if [ $nbLignes -ne 0 ]
+   then
+   	echo "Vous devez d'abord éteindre le serveur avant de l'allumer"
+   else
+   	java Bureau/Reseaux_Simonin_Enzo_S2A/test.java&
+   	nouveauPid=$! 
+   	echo $nouveauPid > Bureau/Reseaux_Simonin_Enzo_S2A/test.pid
+   	echo "Le serveur à été allumé"
+   fi;;
+
+"restart")
+   top -b -n 1 > tmp.txt
+   nbLignes=$(grep -c $pid tmp.txt)
+   if [ $nbLignes -eq 0 ]
+   then
+   	echo "Vous devez d'abord allumer le serveur avant de le redémarrer"
+   else
+   	kill -9 $pid
+   	java Bureau/Reseaux_Simonin_Enzo_S2A/test.java&
+   	nouveauPid=$! 
+   	echo $nouveauPid > Bureau/Reseaux_Simonin_Enzo_S2A/test.pid
+   	echo "Le serveur à redémarrer"
+   fi;;
+esac
+
