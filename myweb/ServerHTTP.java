@@ -33,14 +33,23 @@ public class ServerHTTP {
      */
     public static String REJECT;
 
+
     public static void main(String[] args) {
         try {
+            //Premiere lecture pour recuperer le port
+            LectureConfiguration();
+            //Creation du serveur et attente de connexion avec le port lu.
             ServerSocket serveur = new ServerSocket(PORT);
             while (true) {
+                //Recuperation de la configuration a chaque iteration afin de pouvoir la modifier n importe quand.
                 LectureConfiguration();
+                //Attente de connexion avec le client
                 socket = serveur.accept();
+                //Recuperation de l adresse IP du client
                 String ip = String.valueOf(socket.getLocalAddress());
-                System.out.println(ip);
+                //Verification si l ip est valide
+                ipValide(ip);
+                //Chargement de la page
                 Chargement();
             }
         } catch (Exception e) {
@@ -48,30 +57,46 @@ public class ServerHTTP {
         }
     }
 
+    /**
+     * Methode qui charge la page si c est possible ou renvoie une erreur
+     */
     private static void Chargement() {
         try {
             LectureConfiguration();
-
+            //Creation du flux d'entree
             OutputStream os = socket.getOutputStream();
+            //Creation du flux de sortie
             BufferedInputStream is = new BufferedInputStream(socket.getInputStream());
-
+            //Creation d un tableau de byte
             byte[] buffer = new byte[1024];
             int nbLecture = is.read(buffer);
+            //Recuperation de la requete dans le bon format
             String requete = new String(buffer, 0, nbLecture, StandardCharsets.UTF_8);
+            //Transformation de la requete en tableau de string
             String[] requeteTab = requete.split(" ");
+            //Creation d un fichier a partir de la requete
             File file = new File(ROOT + requeteTab[1]);
+            //Creation d un flux d entree sur le fichier
             FileInputStream fl = new FileInputStream(file);
+            //Creation d un tableau de byte a partir du flux d entree
             byte[] arr = new byte[(int) file.length()];
-
+            //Lecture du flux d entree sur le tableau de byte
             fl.read(arr);
+            //Envoie du tableau de byte sur le flux de sortie
             os.write(arr);
+            //Fermeture du flux d entree
             fl.close();
+            //Fermeture du flux de sortie
             os.close();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            //Si le fichier n est pas trouve, renvoie erreur 404
+            System.out.println("Erreur 404");
+        }
     }
 
     /**
      * methode qui ouvre le fichier XML et assigne les attributs au valeurs présentent dans le fichier de configuration
+     *
      * @throws ParserConfigurationException
      * @throws IOException
      * @throws SAXException
@@ -81,6 +106,7 @@ public class ServerHTTP {
         DocumentBuilder db = dbf.newDocumentBuilder();
         // récupération du fichier de configuration
         Document doc = db.parse("/etc/myweb/myweb.conf");
+
         doc.getDocumentElement().normalize();
 
         // récupération du port, si le port n'est pas renseigné on prend le port 80
@@ -96,9 +122,10 @@ public class ServerHTTP {
         // récupération des adresses IP rejetées
         REJECT = doc.getElementsByTagName("reject").item(0).getTextContent();
     }
-    
+
     /**
      * Methode qui permet de verifier si l'adresse IP est valide
+     *
      * @param ip l'adresse IP du client
      * @return true si l'adresse IP est valide, false sinon
      */
