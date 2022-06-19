@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# vérifications du nombre de paramètre si il n'y a pas 1 paramètre le programme s'arrète après avoir envoyé un message dans le terminal
+if [ $# -ne 1 ]
+then
+   echo "Vous devez entrer un argument : stop, start ou restart"
+   exit
+fi
+
+# récupération du PID de dernier serveur lancé dans le fichier myweb.pid
+pid=$(head -1 /var/run/myweb.pid)
+
+# on récupère les processus en cour de fonctionnement
+top -b -n 1 > tmp.txt
+# on stock dans une variable nbLigne de nombres de lignes contenant notre pid dans le fichier tmp.txt
+nbLignes=$(grep -c $pid tmp.txt)
+   
+# switch avec le premier argument qui doit être stop, start ou restart 
+case $1 in
+# si le premier argmument est stop
+"stop")
+   # si le nombres de lignes qui contiennent notre pid est égal à 0 le serveur n'est pas allumer un message est envoyé pour prévenir l'utilisateur de l'allumer avant de pouvoir l'éteindre
+   # sinon il kill le procéssus et envoi un message pour dire qu'il a éteint le serveur
+   if [ $nbLignes -eq 0 ]
+   then
+   	echo "Vous devez d'abord allumer le serveur avant de l'éteindre"
+   else
+        # kill le processus
+   	kill -9 $pid
+   	echo "Le serveur à été arrêté"
+   fi;;
+
+# si le premier argmument est start
+"start")
+   # si le nombres de lignes qui contiennent notre pid n'est pas égal à 0 le serveur est déjà allumer un message est envoyé pour prévenir l'utilisateur de l'éteindre avant de pouvoir l'allumer
+   # sinon il allume le serveur et stock le nouveau pid dans le fichier
+   if [ $nbLignes -ne 0 ]
+   then
+   	echo "Vous devez d'abord éteindre le serveur avant de l'allumer"
+   else
+        # lance le serveur, & permet de le lancer en arrière plans
+   	java /bin/myweb/ServerHTTP.java&
+   	# on récupère le dernier processus lancé et on stock le pid dans une variable 
+   	nouveauPid=$! 
+   	# on stock cette variable dans le fichier myweb.pid
+   	echo $nouveauPid > /var/run/myweb.pid
+   	echo "Le serveur à été allumé"
+   fi;;
+
+# si le premier argmument est restart
+"restart")
+   # si le nombres de lignes qui contiennent notre pid est égal à 0 le serveur n'est pas allumer un message est envoyé pour prévenir l'utilisateur de l'allumer avant de pouvoir le redémarrer
+   # sinon il kill le procéssus, il allume le serveur, stock le nouveau pid dans le fichier et envoi un message pour dire qu'il a redémarré le serveur
+   if [ $nbLignes -eq 0 ]
+   then
+   	echo "Vous devez d'abord allumer le serveur avant de le redémarrer"
+   else
+        # kill le processus
+   	kill -9 $pid
+   	# lance le serveur
+   	java /bin/myweb/ServerHTTP.java&
+   	# on récupère le dernier processus lancé et on stock le pid dans une variable 
+   	nouveauPid=$! 
+   	# on stock cette variable dans le fichier myweb.pid
+   	echo $nouveauPid > /var/run/myweb.pid
+   	echo "Le serveur à redémarrer"
+   fi;;
+esac
+
