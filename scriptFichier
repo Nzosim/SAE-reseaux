@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo 10000000 > /var/run/myweb.pid
